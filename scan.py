@@ -13,6 +13,12 @@ PLAYLIST_URL = (
 DEFAULT_CONF = "scan.conf"
 
 
+"""
+This file needs refactoring.
+The database should be used here. I know that, but i thought that it is longer for me to write good code. Sorry)
+"""
+
+
 def parse_num(title: str) -> int:
     if title.lower().find("хрум") >= 0:
         if title.find("Выпуск ") >= 0:

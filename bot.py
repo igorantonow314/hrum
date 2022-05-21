@@ -97,8 +97,7 @@ async def send_last(message_or_callback: Union[Message, CallbackQuery]):
 async def send_hrum(v: YouTube, message: Message):
     await message.answer_chat_action("upload_document")
     await message.answer_audio(
-        audio=InputFile(scan.get_hrum_audio_filename(v)),
-        caption=scan.get_title(v)
+        audio=InputFile(scan.get_hrum_audio_filename(v)), caption=scan.get_title(v)
     )
 
 

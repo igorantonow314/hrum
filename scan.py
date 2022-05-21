@@ -97,6 +97,12 @@ def get_hrum_audio_filename(v: YouTube):
     return glob.glob(f"tmp/audio/{v.video_id}/*")[0]
 
 
+def find_hrums(query: str):
+    for t, v in get_hrums():
+        if t.lower().find(query.lower()) >= 0:
+            yield v
+
+
 if __name__ == "__main__":
     for t, v in get_updates():
         print(t, v.publish_date)

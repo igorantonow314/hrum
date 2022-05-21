@@ -103,5 +103,29 @@ async def send_hrum(v: YouTube, chat_id: int):
     )
 
 
+@dp.message_handler()
+async def find(message: Message):
+    await message.answer_chat_action("typing")
+    hrums = scan.find_hrums(message.text)
+    ik = []
+    for _, v in zip(range(10), hrums):
+        ik.append(
+            [
+                InlineKeyboardButton(
+                    scan.get_title(v), callback_data=f"get {v.watch_url}"
+                )
+            ]
+        )
+    ikm = InlineKeyboardMarkup(inline_keyboard=ik)
+    await message.reply("Результаты поиска:", reply_markup=ikm)
+
+
+@dp.callback_query_handler(lambda x: x.data.startswith("get"))
+async def get_hrum(callback: CallbackQuery):
+    url = callback.data.split()[1]
+    await send_hrum(callback.message.chat.id, YouTube(url))
+    await callback.answer()
+
+
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)

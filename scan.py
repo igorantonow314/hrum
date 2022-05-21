@@ -1,3 +1,4 @@
+import glob
 from functools import lru_cache
 import json
 import os
@@ -6,8 +7,10 @@ from typing import Optional
 from pytube import Channel, YouTube, Playlist
 
 CHANNEL_URL = "https://www.youtube.com/user/DetiFM/featured"
-PLAYLIST_URL = "https://www.youtube.com/playlist?list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB"
-DEFAULT_CONF = 'scan.conf'
+PLAYLIST_URL = (
+    "https://www.youtube.com/playlist?list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB"
+)
+DEFAULT_CONF = "scan.conf"
 
 
 def parse_num(title: str) -> int:
@@ -40,27 +43,26 @@ def get_hrums():
 
 def load_conf(conf=DEFAULT_CONF):
     if not os.path.exists(conf):
-        save_conf({'version': 0.1}, conf)
-    with open(conf, 'r') as f:
+        save_conf({"version": 0.1}, conf)
+    with open(conf, "r") as f:
         return json.load(f)
 
 
 def save_conf(data, conf=DEFAULT_CONF):
-    with open(conf, 'w') as f:
+    with open(conf, "w") as f:
         json.dump(data, f)
 
 
 def get_last_hrum_num(conf=DEFAULT_CONF):
     c = load_conf(conf)
-    return c.get('last_hrum_num') or -1
+    return c.get("last_hrum_num") or -1
 
 
 def update_last_hrum_num(new_n, conf=DEFAULT_CONF):
     c = load_conf(conf)
-    n = c.get('last_hrum_num') or -1
-    c['last_hrum_num'] = max(n, new_n)
+    n = c.get("last_hrum_num") or -1
+    c["last_hrum_num"] = max(n, new_n)
     save_conf(c, conf)
-
 
 
 def get_updates(conf=DEFAULT_CONF):
@@ -72,19 +74,27 @@ def get_updates(conf=DEFAULT_CONF):
             yield t, v
 
 
-def get_title(vid: Optional[YouTube]=None, url: Optional[str]=None):
+def get_title(vid: Optional[YouTube] = None, url: Optional[str] = None):
     if url:
         vid = YouTube(url)
     url = vid.watch_url
     c = load_conf()
-    if c.get('videos') is None:
-        c['videos'] = dict()
-    if r := c['videos'].get(url):
-        if title := r.get('title'):
+    if c.get("videos") is None:
+        c["videos"] = dict()
+    if r := c["videos"].get(url):
+        if title := r.get("title"):
             return title
-    c['videos'][url] = {'title': vid.title}
+    c["videos"][url] = {"title": vid.title}
     save_conf(c)
-    return c['videos'][url]['title']
+    return c["videos"][url]["title"]
+
+
+def get_hrum_audio_filename(v: YouTube):
+    if not os.path.exists("tmp/audio/"):
+        os.makedirs("tmp/audio/")
+    if len(glob.glob(f"tmp/audio/{v.video_id}/*")) == 0:
+        v.streams.get_audio_only().download(f"tmp/audio/{v.video_id}")
+    return glob.glob(f"tmp/audio/{v.video_id}/*")[0]
 
 
 if __name__ == "__main__":

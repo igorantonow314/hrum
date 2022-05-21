@@ -1,31 +1,12 @@
 from functools import lru_cache
+import json
+import os
 
-from pytube import Channel, YouTube
+from pytube import Channel, YouTube, Playlist
 
 CHANNEL_URL = "https://www.youtube.com/user/DetiFM/featured"
-
-
-@lru_cache
-def get_all_hrums():
-    c = Channel(CHANNEL_URL)
-    hrums = {"without num": []}
-    for video in c.videos:
-        t = video.title
-        if t.lower().find("хрум") >= 0:
-            if t.lower().find("Выпуск ") >= 0:
-                n = t[t.lower.find("Выпуск ") + len("Выпуск ") :]
-                n = int(n)
-                hrums[n] = video
-            else:
-                hrums["without num"].append(video)
-    return hrums
-
-def get_hrums():
-    c = Channel(CHANNEL_URL)
-    for video in c.videos:
-        t = video.title
-        if t.lower().find("хрум") >= 0:
-            yield (t, video)
+PLAYLIST_URL = "https://www.youtube.com/playlist?list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB"
+DEFAULT_CONF = 'scan.conf'
 
 
 def parse_num(title: str) -> int:
@@ -40,20 +21,56 @@ def parse_num(title: str) -> int:
         return None
 
 
-def find_hrum_v1(issue: int):
-    if type(issue) is not int:
-        raise TypeError("issue must be int")
-    hrums = get_hrums()
-    return hrums.get(issue)
-
-
-def find_hrum_v2(issue: int):
-    for t, v in get_hrums():
-        print('processing', t)
-        print(parse_num(t))
-        if parse_num(t) == issue:
+def get_last_hrum():
+    c = Channel(CHANNEL_URL)
+    for v in c.videos:
+        t = v.title
+        if t.lower().find("хрум") >= 0:
             return v
 
 
+def get_hrums():
+    c = Channel(CHANNEL_URL)
+    for video in c.videos:
+        t = video.title
+        if t.lower().find("хрум") >= 0:
+            yield (t, video)
+
+
+def load_conf(conf=DEFAULT_CONF):
+    if not os.path.exists(conf):
+        save_conf({'version': 0.1}, conf)
+    with open(conf, 'r') as f:
+        return json.load(f)
+
+
+def save_conf(data, conf=DEFAULT_CONF):
+    with open(conf, 'w') as f:
+        json.dump(data, f)
+
+
+def get_last_hrum_num(conf=DEFAULT_CONF):
+    c = load_conf(conf)
+    return c.get('last_hrum_num') or -1
+
+
+def update_last_hrum_num(new_n, conf=DEFAULT_CONF):
+    c = load_conf(conf)
+    n = c.get('last_hrum_num') or -1
+    c['last_hrum_num'] = max(n, new_n)
+    save_conf(c, conf)
+
+
+
+def get_updates(conf=DEFAULT_CONF):
+    c = load_conf(conf)
+    n = get_last_hrum_num()
+    for t, v in get_hrums():
+        if parse_num(t) > n:
+            update_last_hrum_num(parse_num(t))
+            yield t, v
+
+
 if __name__ == "__main__":
-    print(find_hrum_v2(92).title)
+    for t, v in get_updates():
+        print(t, v.publish_date)

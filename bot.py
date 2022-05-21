@@ -74,7 +74,7 @@ async def update(x: Union[Message, CallbackQuery]):
         message = x
     await message.answer_chat_action("typing")
     for t, v in scan.get_updates():
-        await send_hrum(v, chat_id=message.chat.id)
+        await send_hrum(v, message=message)
         await message.answer_chat_action("typing")
     await message.reply("Я посмотрел все обновления.", disable_notification=True)
     logger.info("updates processed!")
@@ -91,15 +91,14 @@ async def send_last(message_or_callback: Union[Message, CallbackQuery]):
         message = message_or_callback
     await message.answer_chat_action("typing")
     v = scan.get_last_hrum()
-    await send_hrum(v, message.chat.id)
+    await send_hrum(v, message)
 
 
-async def send_hrum(v: YouTube, chat_id: int):
-    await bot.send_chat_action(chat_id, "upload_document")
-    await bot.send_audio(
+async def send_hrum(v: YouTube, message: Message):
+    await message.answer_chat_action("upload_document")
+    await message.answer_audio(
         audio=InputFile(scan.get_hrum_audio_filename(v)),
-        caption=scan.get_title(v),
-        chat_id=chat_id,
+        caption=scan.get_title(v)
     )
 
 
@@ -123,7 +122,7 @@ async def find(message: Message):
 @dp.callback_query_handler(lambda x: x.data.startswith("get"))
 async def get_hrum(callback: CallbackQuery):
     url = callback.data.split()[1]
-    await send_hrum(callback.message.chat.id, YouTube(url))
+    await send_hrum(message=callback.message, v=YouTube(url))
     await callback.answer()
 
 

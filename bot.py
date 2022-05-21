@@ -42,8 +42,10 @@ async def start_msg(message: Message):
 async def update(message: Message):
     logger.info('scanning for new updates...')
     for t, v in scan.get_updates():
+        await message.answer_chat_action("upload_photo")
         await message.reply_photo(v.thumbnail_url, caption='Новый выпуск! ' + t)
-        await message.answer_chat_action("upload_document")
+        await message.answer_chat_action("typing")
+    await message.answer('Я посмотрел все обновления')
     logger.info('updates processed!')
 
 

@@ -1,6 +1,7 @@
 from functools import lru_cache
 import json
 import os
+from typing import Optional
 
 from pytube import Channel, YouTube, Playlist
 
@@ -24,7 +25,7 @@ def parse_num(title: str) -> int:
 def get_last_hrum():
     c = Channel(CHANNEL_URL)
     for v in c.videos:
-        t = v.title
+        t = get_title(v)
         if t.lower().find("хрум") >= 0:
             return v
 
@@ -32,7 +33,7 @@ def get_last_hrum():
 def get_hrums():
     c = Channel(CHANNEL_URL)
     for video in c.videos:
-        t = video.title
+        t = get_title(video)
         if t.lower().find("хрум") >= 0:
             yield (t, video)
 
@@ -69,6 +70,21 @@ def get_updates(conf=DEFAULT_CONF):
         if parse_num(t) > n:
             update_last_hrum_num(parse_num(t))
             yield t, v
+
+
+def get_title(vid: Optional[YouTube]=None, url: Optional[str]=None):
+    if url:
+        vid = YouTube(url)
+    url = vid.watch_url
+    c = load_conf()
+    if c.get('videos') is None:
+        c['videos'] = dict()
+    if r := c['videos'].get(url):
+        if title := r.get('title'):
+            return title
+    c['videos'][url] = {'title': vid.title}
+    save_conf(c)
+    return c['videos'][url]['title']
 
 
 if __name__ == "__main__":

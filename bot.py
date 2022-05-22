@@ -163,7 +163,7 @@ async def check_for_updates():
     logger.info("scanning for new updates...")
     for t, v in scan.get_updates():
         for chat_id in c["chats"]:
-            await bot.send_chat_action("upload_document", chat_id=chat_id)
+            await bot.send_chat_action(action="upload_document", chat_id=chat_id)
             await bot.send_audio(
                 chat_id=chat_id,
                 audio=InputFile(scan.get_hrum_audio_filename(v)),

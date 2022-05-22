@@ -108,7 +108,7 @@ async def check(x: Union[Message, CallbackQuery]):
     )
     c = load_conf()
     if c.get("chats") is None:
-        c['chats'] = []
+        c["chats"] = []
     if message.chat.id not in c["chats"]:
         await message.answer(
             "Упс, кажется, я забыл про тебя, это странно. Прости :-(\n"
@@ -119,7 +119,7 @@ async def check(x: Union[Message, CallbackQuery]):
         )
         c["chats"].append(message.chat.id)
         save_conf(c)
-        c = load_conf
+        c = load_conf()
         if message.chat.id in c["chats"]:
             await message.answer(
                 "Всё, теперь я точно запомнил тебя!"

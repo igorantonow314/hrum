@@ -107,6 +107,8 @@ async def check(x: Union[Message, CallbackQuery]):
         "но раз ты просишь, проверю ещё раз."
     )
     c = load_conf()
+    if c.get("chats") is None:
+        c['chats'] = []
     if message.chat.id not in c["chats"]:
         await message.answer(
             "Упс, кажется, я забыл про тебя, это странно. Прости :-(\n"

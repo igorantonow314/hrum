@@ -4,6 +4,8 @@ import os
 
 from typing import Union
 
+import asyncio
+
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import (
     InputTextMessageContent,
@@ -47,8 +49,16 @@ dp = Dispatcher(bot)
 
 @dp.message_handler(commands=["start", "help"])
 async def start_msg(message: Message):
+    c = load_conf()
+    if c.get("chats") is None:
+        c["chats"] = []
+    if message.chat.id not in c["chats"]:
+        c["chats"].append(message.chat.id)
+    save_conf(c)
     await message.reply(
-        "Привет! Я буду присылать тебе свежие хрумы. Ты также можешь попросить меня найти нужный выпуск, для этого просто напиши его название.",
+        "Привет! Я буду присылать тебе свежие хрумы."
+        "Ты также можешь попросить меня найти нужный выпуск,"
+        " для этого просто напиши его название.",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
                 [InlineKeyboardButton("Последний выпуск", callback_data="last")],
@@ -60,24 +70,6 @@ async def start_msg(message: Message):
             ]
         ),
     )
-
-
-@dp.callback_query_handler(lambda x: x.data == "force_update")
-@dp.message_handler(commands=["force_update"])
-async def update(x: Union[Message, CallbackQuery]):
-    logger.info("scanning for new updates...")
-    if hasattr(x, "message"):
-        # it is callback
-        message = x.message
-        await x.answer()
-    else:
-        message = x
-    await message.answer_chat_action("typing")
-    for t, v in scan.get_updates():
-        await send_hrum(v, message=message)
-        await message.answer_chat_action("typing")
-    await message.reply("Я посмотрел все обновления.", disable_notification=True)
-    logger.info("updates processed!")
 
 
 @dp.callback_query_handler(lambda x: x.data == "last")
@@ -101,8 +93,44 @@ async def send_hrum(v: YouTube, message: Message):
     )
 
 
+@dp.callback_query_handler(lambda x: x.data == "force_update")
+@dp.message_handler(commands=["force_update"])
+async def check(x: Union[Message, CallbackQuery]):
+    if hasattr(x, "message"):
+        # it is callback
+        message = x.message
+        await x.answer()
+    else:
+        message = x
+    await message.reply(
+        "Я время от времени сам проверяю обновления, "
+        "но раз ты просишь, проверю ещё раз."
+    )
+    c = load_conf()
+    if message.chat.id not in c["chats"]:
+        await message.answer(
+            "Упс, кажется, я забыл про тебя, это странно. Прости :-(\n"
+            "Напиши об этом @igorantonow, он починит меня!"
+        )
+        logger.warning(
+            "Chat id is not in list!" + f"Id: {message.chat.id}, id_list: {c['chats']}"
+        )
+        c["chats"].append(message.chat.id)
+        save_conf(c)
+        c = load_conf
+        if message.chat.id in c["chats"]:
+            await message.answer(
+                "Всё, теперь я точно запомнил тебя!"
+                "Не знаю, что тогда со мной было..."
+            )
+        else:
+            li
+    await check_for_updates()
+    await message.reply("Я проверил обновления")
+
+
 @dp.message_handler()
-async def find(message: Message):
+async def search(message: Message):
     await message.answer_chat_action("typing")
     hrums = scan.find_hrums(message.text)
     ik = []
@@ -125,5 +153,36 @@ async def get_hrum(callback: CallbackQuery):
     await callback.answer()
 
 
+async def check_for_updates():
+    c = load_conf()
+    if c["chats"] is None:
+        c["chats"] = []
+        save_conf(c)
+    logger.info("scanning for new updates...")
+    for t, v in scan.get_updates():
+        for chat_id in c["chats"]:
+            await bot.send_chat_action("upload_document", chat_id=chat_id)
+            await bot.send_audio(
+                chat_id=chat_id,
+                audio=InputFile(scan.get_hrum_audio_filename(v)),
+                caption=scan.get_title(v),
+            )
+            await asyncio.sleep(0)
+    logger.info("updates processed!")
+
+
+async def updates_loop():
+    while True:
+        await asyncio.create_task(check_for_updates())
+        await asyncio.sleep(30 * 60)
+
+
+def main():
+    loop = asyncio.get_event_loop()
+    task = loop.create_task(updates_loop())
+    executor.start_polling(dp, loop=loop)
+    task.cancel()
+
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    main()

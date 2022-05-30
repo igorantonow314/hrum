@@ -127,7 +127,7 @@ async def check(x: Union[Message, CallbackQuery]):
                 "Не знаю, что тогда со мной было..."
             )
         else:
-            li
+            pass
     await check_for_updates()
     await message.reply("Я проверил обновления")
 

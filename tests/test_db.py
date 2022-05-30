@@ -1,25 +1,42 @@
+import os
 import sqlite3
 
 import pytest
 
-from db import create_table_if_not_exists, insert_hrum, update_hrum, get_hrum_by_id
+from db import DB
 
 
-hrum_for_test = {"video_id": "w5tXp2wDXUM", "url": "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
-        "name": "🏡 Лесной дом | ХРУМ или Сказочный детектив (🎧 АУДИО) Выпуск 88",
-        "issue": 88, "audio_file": None, "video_date": "19.02.2022"}
+hrum_for_test = {
+    "video_id": "w5tXp2wDXUM",
+    "url": "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
+    "name": "🏡 Лесной дом | ХРУМ или Сказочный детектив (🎧 АУДИО) Выпуск 88",
+    "issue": 88,
+    "audio_file": None,
+    "video_date": "19.02.2022",
+}
 
 
-def test_create_table_if_not_exists():
-    create_table_if_not_exists()
-    create_table_if_not_exists()
+@pytest.fixture
+def db():
+    db_name = "database_for_testing-3893832.db"
+    if os.path.exists(db_name):
+        os.remove(db_name)
+    db = DB(db_name)
+    assert os.path.exists(db_name)
+    return db
 
 
-def test_insert_hrum():
-    insert_hrum(**hrum_for_test)
+def test_create_table_if_not_exists(db):
+    db.create_table_if_not_exists()
+    db.create_table_if_not_exists()
+
+
+def test_insert_hrum(db):
+    db.insert_hrum(**hrum_for_test)
     with pytest.raises(sqlite3.IntegrityError):
-	    insert_hrum(**hrum_for_test)
+        db.insert_hrum(**hrum_for_test)
 
-def test_update_hrum():
-	update_hrum(**hrum_for_test)
-	update_hrum(**hrum_for_test)
+
+def test_update_hrum(db):
+    db.update_hrum(**hrum_for_test)
+    db.update_hrum(**hrum_for_test)

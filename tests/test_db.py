@@ -31,12 +31,12 @@ def test_create_table_if_not_exists(db):
     db.create_table_if_not_exists()
 
 
-def test_insert_hrum(db):
-    db.insert_hrum(**hrum_for_test)
+def test_insert_video(db):
+    db.insert_video(**hrum_for_test)
     with pytest.raises(sqlite3.IntegrityError):
-        db.insert_hrum(**hrum_for_test)
+        db.insert_video(**hrum_for_test)
 
 
-def test_update_hrum(db):
-    db.update_hrum(**hrum_for_test)
-    db.update_hrum(**hrum_for_test)
+def test_update_video(db):
+    db.update_video(**hrum_for_test)
+    db.update_video(**hrum_for_test)

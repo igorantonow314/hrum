@@ -21,7 +21,7 @@ class DB:
                 """
             )
 
-    def insert_hrum(
+    def insert_video(
         self,
         video_id: str,
         url: str,
@@ -45,7 +45,7 @@ class DB:
                 data,
             )
 
-    def update_hrum(
+    def update_video(
         self,
         video_id: str,
         url: str,
@@ -70,7 +70,7 @@ class DB:
                 data,
             )
 
-    def get_hrum_by_id(self, video_id: str):
+    def get_video_by_id(self, video_id: str):
         with self.con:
             data = self.con.execute(
                 """

@@ -138,13 +138,13 @@ async def bot_statistics(message: Optional[Message] = None):
         admin_chats = [message.chat.id]
     else:
         admin_chats = load_conf()["admin_chats"]  # no backward compatibility
-    msg = "```\nСтатистика бота: \n"
+    msg = "**Статистика бота**\n```\n"
     conf = load_conf()
     msg += f"Чатом пользуются {len(conf['chats'])} человек:\n"
     for chat_id in conf["chats"]:
         c = await bot.get_chat(chat_id)
         await asyncio.sleep(0)
-        msg += f"{c.full_name}"
+        msg += f"- {c.full_name}\n"
 
     msg += "```"
     for chat_id in admin_chats:

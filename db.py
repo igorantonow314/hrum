@@ -80,3 +80,8 @@ class DB:
             data = list(data)
             assert len(data) == 1
             return data[0]
+
+    def get_videos(self):
+        with self.con:
+            data = self.con.execute("""SELECT * FROM videos""")
+            return data

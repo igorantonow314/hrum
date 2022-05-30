@@ -40,3 +40,16 @@ def test_insert_video(db):
 def test_update_video(db):
     db.update_video(**hrum_for_test)
     db.update_video(**hrum_for_test)
+
+
+def test_get_videos(db):
+    db.insert_video(**hrum_for_test)
+    h = db.get_videos()
+    hl = list(h)
+    assert len(hl) == 1
+    assert hl[0][0] == hrum_for_test["video_id"]
+    assert hl[0][1] == hrum_for_test["url"]
+    assert hl[0][2] == hrum_for_test["name"]
+    assert hl[0][3] == hrum_for_test["issue"]
+    assert hl[0][4] == hrum_for_test["audio_file"]
+    assert hl[0][5] == hrum_for_test["video_date"]

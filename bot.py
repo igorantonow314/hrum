@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from typing import Union
+from typing import Union, Optional
 
 import asyncio
 
@@ -70,6 +70,7 @@ async def start_msg(message: Message):
             ]
         ),
     )
+    await bot_statistics()
 
 
 @dp.callback_query_handler(lambda x: x.data == "last")
@@ -131,6 +132,26 @@ async def check(x: Union[Message, CallbackQuery]):
     await message.reply("Я проверил обновления")
 
 
+@dp.message_handler(commands=["stats"], chat_id=load_conf()["admin_chats"])
+async def bot_statistics(message: Optional[Message] = None):
+    if message:
+        admin_chats = [message.chat.id]
+    else:
+        admin_chats = load_conf()["admin_chats"]  # no backward compatibility
+    msg = "```\nСтатистика бота: \n"
+    conf = load_conf()
+    msg += f"Чатом пользуются {len(conf['chats'])} человек:\n"
+    for chat_id in conf["chats"]:
+        c = await bot.get_chat(chat_id)
+        await asyncio.sleep(0)
+        msg += f"{c.full_name}"
+
+    msg += "```"
+    for chat_id in admin_chats:
+        # TODO: (sequrity leap!) inserting names of people in markdown without check
+        await bot.send_message(chat_id=chat_id, text=msg, parse_mode="markdown")
+
+
 @dp.message_handler()
 async def search(message: Message):
     await message.answer_chat_action("typing")
@@ -182,7 +203,7 @@ async def updates_loop():
 def main():
     loop = asyncio.get_event_loop()
     task = loop.create_task(updates_loop())
-    executor.start_polling(dp, loop=loop)
+    executor.start_polling(dp, loop=loop, skip_updates=True)
     task.cancel()
 
 

@@ -3,3 +3,4 @@ __pycache__
 scan.conf
 bot.conf
 tmp
+log

@@ -15,7 +15,7 @@ class Video:
     audio_file: Optional[str] = None
     video_date: Optional[datetime.datetime] = None
 
-    def _get_primary_key_name():
+    def _get_primary_key_name(*args):
         return "video_id"
 
 
@@ -82,30 +82,16 @@ class DB:
         sql += ") VALUES (" + ", ".join("?" for _ in dataclasses.astuple(v)) + ")"
         return self.con.execute(sql, dataclasses.astuple(v))
 
-    def update_video(
-        self,
-        video_id: str,
-        url: str,
-        name: str,
-        issue: int = None,
-        audio_file: str = None,
-        video_date=None,
-    ):
-        with self.con:
-            data = (
-                url,
-                name,
-                issue,
-                audio_file,
-                video_date,
-                video_id,
-            )
-            return self.con.execute(
-                """UPDATE videos
-                SET url=?, name=?, issue=?, audio_file=?, video_date=?
-                WHERE video_id=?""",
-                data,
-            )
+    def update(self, v: Video) -> None:
+        if not isinstance(v, self.dataclass):
+            raise TypeError("v must be Video")
+        data_fields = dataclasses.asdict(v)
+        data_fields.pop(v._get_primary_key_name())
+        sql = "UPDATE videos "
+        sql += "SET " + ", ".join((i + "=?" for i in data_fields.keys()))
+        sql += "\nWHERE " + v._get_primary_key_name() + "= ?"
+        args = list(data_fields.values()) + [getattr(v, v._get_primary_key_name())]
+        return self.con.execute(sql, args)
 
     def get_video_by_id(self, video_id: str):
         with self.con:

@@ -55,6 +55,7 @@ def db():
 
 
 def test_create_table_if_not_exists(db):
+    # it already has ran in db.__init__(), but anyway
     db.create_table_if_not_exists()
     db.create_table_if_not_exists()
 
@@ -68,10 +69,10 @@ def test_insert(db):
         db.insert(1, 2, 3)
     with pytest.raises(sqlite3.IntegrityError):
         db.insert(Video(None, None, None))
-    all_rows = list(db.con.execute("SELECT * FROM videos"))
-    assert all_rows[0] == tuple(hrum_for_test.values())
-    assert all_rows[1][:-2] == tuple(hrum2.values())[:-1]
-    assert datetime.datetime.fromisoformat(all_rows[1][-1]) == hrum2["video_date"]
+    all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
+    assert all_rows[1] == tuple(hrum_for_test.values())
+    assert all_rows[0][:-2] == tuple(hrum2.values())[:-1]
+    assert datetime.datetime.fromisoformat(all_rows[0][-1]) == hrum2["video_date"]
     with pytest.raises(TypeError):
         db.insert(1)
     with pytest.raises(TypeError):
@@ -80,9 +81,21 @@ def test_insert(db):
         db.insert(id="dldl", url="dldld")
 
 
-def test_update_video(db):
-    db.update_video(**hrum_for_test)
-    db.update_video(**hrum_for_test)
+def test_update(db):
+    db.update(Video(**hrum_for_test))
+    assert [] == list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
+    db.insert(Video(**hrum_for_test))
+    hrum_for_test["issue"] = None
+    db.update(Video(**hrum_for_test))
+    hrum_for_test["issue"] = 88
+    db.update(Video(**hrum_for_test))
+    db.insert(Video(**hrum2))
+    db.update(Video(**hrum2))
+    all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
+    assert len(all_rows) == 2
+    assert all_rows[0][:-2] == tuple(hrum2.values())[:-1]
+    assert datetime.datetime.fromisoformat(all_rows[0][-1]) == hrum2["video_date"]
+    assert Video(*all_rows[1]) == Video(**hrum_for_test)
 
 
 def test_get_videos(db):

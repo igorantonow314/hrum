@@ -5,3 +5,4 @@ bot.conf
 tmp
 log
 hrums.db
+database_for_testing*.db

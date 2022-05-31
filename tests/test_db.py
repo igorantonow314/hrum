@@ -3,7 +3,7 @@ import sqlite3
 
 import pytest
 
-from db import DB
+from db import DB, Video
 
 
 hrum_for_test = {
@@ -14,6 +14,22 @@ hrum_for_test = {
     "audio_file": None,
     "video_date": "19.02.2022",
 }
+
+
+def test_video_class():
+    Video(**hrum_for_test)
+    Video(
+        "w5tXp2wDXUM",
+        "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
+    )
+    with pytest.raises(TypeError):
+        Video()
+    with pytest.raises(TypeError):
+        Video(name="test", issue=666)
+    with pytest.raises(TypeError):
+        Video(
+            url="https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2"
+        )
 
 
 @pytest.fixture

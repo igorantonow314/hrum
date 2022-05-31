@@ -1,3 +1,4 @@
+import datetime
 import os
 import sqlite3
 
@@ -15,9 +16,20 @@ hrum_for_test = {
     "video_date": "19.02.2022",
 }
 
+hrum2 = {
+    "video_id": "uvAK_e8qVaw",
+    "url": "https://www.youtube.com/watch?v=uvAK_e8qVaw&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=23",
+    "name": "🐈 Кошка, которая гуляла сама по себе | ХРУМ или Сказочный детектив (🎧 АУДИО) Выпуск 67",
+    "issue": 67,
+    "video_date": datetime.datetime(2021, 2, 13),
+}
+
+hrums = [hrum_for_test, hrum2]
+
 
 def test_video_class():
-    Video(**hrum_for_test)
+    for hrum in hrums:
+        Video(**hrum)
     Video(
         "w5tXp2wDXUM",
         "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
@@ -47,10 +59,25 @@ def test_create_table_if_not_exists(db):
     db.create_table_if_not_exists()
 
 
-def test_insert_video(db):
-    db.insert_video(**hrum_for_test)
+def test_insert(db):
+    db.insert(Video(**hrum_for_test))
     with pytest.raises(sqlite3.IntegrityError):
-        db.insert_video(**hrum_for_test)
+        db.insert(Video(**hrum_for_test))
+    db.insert(Video(**hrum2))
+    with pytest.raises(TypeError):
+        db.insert(1, 2, 3)
+    with pytest.raises(sqlite3.IntegrityError):
+        db.insert(Video(None, None, None))
+    all_rows = list(db.con.execute("SELECT * FROM videos"))
+    assert all_rows[0] == tuple(hrum_for_test.values())
+    assert all_rows[1][:-2] == tuple(hrum2.values())[:-1]
+    assert datetime.datetime.fromisoformat(all_rows[1][-1]) == hrum2["video_date"]
+    with pytest.raises(TypeError):
+        db.insert(1)
+    with pytest.raises(TypeError):
+        db.insert({"id": "dldl", "url": "dddld"})
+    with pytest.raises(TypeError):
+        db.insert(id="dldl", url="dldld")
 
 
 def test_update_video(db):
@@ -59,7 +86,7 @@ def test_update_video(db):
 
 
 def test_get_videos(db):
-    db.insert_video(**hrum_for_test)
+    db.insert(Video(**hrum_for_test))
     h = db.get_videos()
     hl = list(h)
     assert len(hl) == 1

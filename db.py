@@ -75,29 +75,12 @@ class DB:
         with self.con:
             self.con.execute(sql)
 
-    def insert_video(
-        self,
-        video_id: str,
-        url: str,
-        name: str,
-        issue: int = None,
-        audio_file: str = None,
-        video_date=None,
-    ):
-        with self.con:
-            data = (
-                video_id,
-                url,
-                name,
-                issue,
-                audio_file,
-                video_date,
-            )
-            return self.con.execute(
-                "INSERT INTO videos (video_id, url, name, issue, audio_file, video_date)"
-                " VALUES (?, ?, ?, ?, ?, ?)",
-                data,
-            )
+    def insert(self, v: Video) -> None:
+        if not isinstance(v, self.dataclass):
+            raise TypeError("v must be Video")
+        sql = "INSERT INTO videos (" + ", ".join(dataclasses.asdict(v).keys())
+        sql += ") VALUES (" + ", ".join("?" for _ in dataclasses.astuple(v)) + ")"
+        return self.con.execute(sql, dataclasses.astuple(v))
 
     def update_video(
         self,

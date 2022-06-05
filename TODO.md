@@ -1,5 +1,8 @@
 ## In progress
 - writing db.py
+- use dataclass in db.py
+
 
 ## Actual ideas
-- use dataclass in db.py
+- stop using Video in DB
+- use db.con only in whith context

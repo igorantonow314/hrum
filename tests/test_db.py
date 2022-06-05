@@ -7,16 +7,16 @@ import pytest
 from db import DB, Video
 
 
-hrum_for_test = {
+hrum_for_test_args = {
     "video_id": "w5tXp2wDXUM",
     "url": "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
     "name": "🏡 Лесной дом | ХРУМ или Сказочный детектив (🎧 АУДИО) Выпуск 88",
     "issue": 88,
     "audio_file": None,
-    "video_date": "19.02.2022",
+    "video_date": "2022-02-19",
 }
 
-hrum2 = {
+hrum2_args = {
     "video_id": "uvAK_e8qVaw",
     "url": "https://www.youtube.com/watch?v=uvAK_e8qVaw&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=23",
     "name": "🐈 Кошка, которая гуляла сама по себе | ХРУМ или Сказочный детектив (🎧 АУДИО) Выпуск 67",
@@ -24,12 +24,11 @@ hrum2 = {
     "video_date": datetime.datetime(2021, 2, 13),
 }
 
-hrums = [hrum_for_test, hrum2]
 
 
 def test_video_class():
-    for hrum in hrums:
-        Video(**hrum)
+    Video(**hrum_for_test_args)
+    Video(**hrum2_args)
     Video(
         "w5tXp2wDXUM",
         "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
@@ -42,6 +41,13 @@ def test_video_class():
         Video(
             url="https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2"
         )
+
+
+@pytest.fixture
+def hrums():
+    hrum1 = Video(**hrum_for_test_args)
+    hrum2 = Video(**hrum2_args)
+    return [hrum1, hrum2]
 
 
 @pytest.fixture
@@ -60,52 +66,56 @@ def test_create_table_if_not_exists(db):
     db.create_table_if_not_exists()
 
 
-def test_insert(db):
-    db.insert(Video(**hrum_for_test))
+def test_insert(db, hrums):
+    db.insert(hrums[0])
     with pytest.raises(sqlite3.IntegrityError):
-        db.insert(Video(**hrum_for_test))
-    db.insert(Video(**hrum2))
+        db.insert(hrums[0])
+    db.insert(hrums[1])
     with pytest.raises(TypeError):
         db.insert(1, 2, 3)
     with pytest.raises(sqlite3.IntegrityError):
         db.insert(Video(None, None, None))
-    all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
-    assert all_rows[1] == tuple(hrum_for_test.values())
-    assert all_rows[0][:-2] == tuple(hrum2.values())[:-1]
-    assert datetime.datetime.fromisoformat(all_rows[0][-1]) == hrum2["video_date"]
     with pytest.raises(TypeError):
         db.insert(1)
     with pytest.raises(TypeError):
         db.insert({"id": "dldl", "url": "dddld"})
     with pytest.raises(TypeError):
         db.insert(id="dldl", url="dldld")
+    
+    all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
+    assert Video(*all_rows[0]) == hrums[1]
+    assert Video(*all_rows[1]) == hrums[0]
 
 
-def test_update(db):
-    db.update(Video(**hrum_for_test))
+def test_update(db, hrums):
+    db.update(hrums[0])
     assert [] == list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
-    db.insert(Video(**hrum_for_test))
-    hrum_for_test["issue"] = None
-    db.update(Video(**hrum_for_test))
-    hrum_for_test["issue"] = 88
-    db.update(Video(**hrum_for_test))
-    db.insert(Video(**hrum2))
-    db.update(Video(**hrum2))
+    
+    db.insert(hrums[0])
+    hrum_for_test_args["issue"] = None
+    db.update(Video(**hrum_for_test_args))
+    all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
+    assert len(all_rows) == 1
+    assert all_rows[0].count(88) == 0
+    hrum_for_test_args["issue"] = 88   # restore global variable
+    
+    db.update(hrums[0])
+    all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
+    assert len(all_rows) == 1
+    assert all_rows[0].count(88) == 1
+    
+    db.insert(hrums[1])
+    db.update(hrums[1])
     all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
     assert len(all_rows) == 2
-    assert all_rows[0][:-2] == tuple(hrum2.values())[:-1]
-    assert datetime.datetime.fromisoformat(all_rows[0][-1]) == hrum2["video_date"]
-    assert Video(*all_rows[1]) == Video(**hrum_for_test)
+    assert Video(*all_rows[0]) == hrums[1]
+    assert Video(*all_rows[1]) == hrums[0]
 
 
-def test_get_videos(db):
-    db.insert(Video(**hrum_for_test))
-    h = db.get_videos()
-    hl = list(h)
-    assert len(hl) == 1
-    assert hl[0][0] == hrum_for_test["video_id"]
-    assert hl[0][1] == hrum_for_test["url"]
-    assert hl[0][2] == hrum_for_test["name"]
-    assert hl[0][3] == hrum_for_test["issue"]
-    assert hl[0][4] == hrum_for_test["audio_file"]
-    assert hl[0][5] == hrum_for_test["video_date"]
+def test_get_all(db, hrums):
+    vl = list(db.get_all())
+    assert vl == []
+    db.insert(hrums[0])
+    db.insert(hrums[1])
+    vl = list(db.get_all())
+    assert vl == hrums

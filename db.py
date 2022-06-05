@@ -3,7 +3,7 @@ import datetime
 import sqlite3 as sl
 import typing
 
-from typing import Optional
+from typing import Optional, List
 
 
 @dataclasses.dataclass
@@ -15,6 +15,14 @@ class Video:
     audio_file: Optional[str] = None
     video_date: Optional[datetime.datetime] = None
 
+    def __post_init__(self):
+        if (
+            not isinstance(self.video_date, datetime.datetime)
+            and self.video_date is not None
+        ):
+            self.video_date = datetime.datetime.fromisoformat(self.video_date)
+
+    @classmethod
     def _get_primary_key_name(*args):
         return "video_id"
 
@@ -93,18 +101,7 @@ class DB:
         args = list(data_fields.values()) + [getattr(v, v._get_primary_key_name())]
         return self.con.execute(sql, args)
 
-    def get_video_by_id(self, video_id: str):
+    def get_all(self) -> List[Video]:
         with self.con:
-            data = self.con.execute(
-                """
-                SELECT video_id, url, name, issue, audio_file, video_date
-                FROM videos"""
-            )
-            data = list(data)
-            assert len(data) == 1
-            return data[0]
-
-    def get_videos(self):
-        with self.con:
-            data = self.con.execute("""SELECT * FROM videos""")
-            return data
+            for row in self.con.execute("SELECT * FROM videos"):
+                yield self.dataclass(*row)

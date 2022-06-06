@@ -194,7 +194,15 @@ def test_find_hrums(db, hrums):
 
 
 def test_get(db, hrums):
-    raise NotImplementedError
+    with pytest.raises(ValueError):
+        db.get(hrums[0].video_id)
+    db.insert(hrums[0])
+    assert hrums[0] == db.get(hrums[0].video_id)
+    db.insert(hrums[1])
+    assert hrums[0] == db.get(hrums[0].video_id)
+    assert hrums[1] == db.get(hrums[1].video_id)
+    with pytest.raises(ValueError):
+        db.get('invalid id')
 
 
 def test_get_hrum_audio_filename(db, hrums):

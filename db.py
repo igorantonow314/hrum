@@ -13,7 +13,6 @@ class Video:
     video_id: str
     url: str
     name: Optional[str] = None
-    issue: Optional[int] = None
     audio_file: Optional[str] = None
     video_date: Optional[datetime.datetime] = None
 
@@ -98,16 +97,16 @@ class DB:
         with self.con:
             self.con.execute(sql)
 
-    def insert(self, v: Video) -> None:
+    def insert(self, v) -> None:
         if not isinstance(v, self.dataclass):
-            raise TypeError("v must be Video")
+            raise TypeError(f"v must be {self.dataclass.__name__}")
         sql = "INSERT INTO videos (" + ", ".join(dataclasses.asdict(v).keys())
         sql += ") VALUES (" + ", ".join("?" for _ in dataclasses.astuple(v)) + ")"
         return self.con.execute(sql, dataclasses.astuple(v))
 
-    def update(self, v: Video) -> None:
+    def update(self, v) -> None:
         if not isinstance(v, self.dataclass):
-            raise TypeError("v must be Video")
+            raise TypeError(f"v must be {self.dataclass.__name__}")
         data_fields = dataclasses.asdict(v)
         data_fields.pop(v._get_primary_key_name())
         sql = "UPDATE videos "

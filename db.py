@@ -22,7 +22,7 @@ class Video:
         ):
             self.video_date = datetime.datetime.fromisoformat(self.video_date)
 
-    @classmethod
+    @staticmethod
     def _get_primary_key_name(*args):
         return "video_id"
 
@@ -83,16 +83,16 @@ class DB:
         with self.con:
             self.con.execute(sql)
 
-    def insert(self, v: Video) -> None:
+    def insert(self, v) -> None:
         if not isinstance(v, self.dataclass):
-            raise TypeError("v must be Video")
+            raise TypeError(f"v must be {self.dataclass}")
         sql = "INSERT INTO videos (" + ", ".join(dataclasses.asdict(v).keys())
         sql += ") VALUES (" + ", ".join("?" for _ in dataclasses.astuple(v)) + ")"
         return self.con.execute(sql, dataclasses.astuple(v))
 
-    def update(self, v: Video) -> None:
+    def update(self, v) -> None:
         if not isinstance(v, self.dataclass):
-            raise TypeError("v must be Video")
+            raise TypeError(f"v must be {self.dataclass}")
         data_fields = dataclasses.asdict(v)
         data_fields.pop(v._get_primary_key_name())
         sql = "UPDATE videos "
@@ -101,7 +101,7 @@ class DB:
         args = list(data_fields.values()) + [getattr(v, v._get_primary_key_name())]
         return self.con.execute(sql, args)
 
-    def get_all(self) -> List[Video]:
+    def get_all(self) -> List[Any]:
         with self.con:
             for row in self.con.execute("SELECT * FROM videos"):
                 yield self.dataclass(*row)

@@ -43,6 +43,13 @@ def test_video_class():
         )
 
 
+def test_video_from_url():
+    v = Video.from_url(hrum_for_test_args['url'])
+    assert v == Video(**hrum_for_test_args)
+    v = Video.from_url(hrum2_args['url'])
+    assert v == Video(**hrum2_args)
+
+
 @pytest.fixture
 def hrums():
     hrum1 = Video(**hrum_for_test_args)

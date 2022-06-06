@@ -5,6 +5,8 @@ import typing
 
 from typing import Optional, List
 
+from pytube import YouTube
+
 
 @dataclasses.dataclass
 class Video:
@@ -22,9 +24,22 @@ class Video:
         ):
             self.video_date = datetime.datetime.fromisoformat(self.video_date)
 
-    @classmethod
+    @staticmethod
     def _get_primary_key_name(*args):
         return "video_id"
+
+
+    @staticmethod
+    def from_url(url: str):
+        v = YouTube(url)
+        video_id = v.video_id
+        name = v.title
+        video_date = v.publish_date
+        return Video(
+            video_id=video_id,
+            url=url,
+            name=name,
+            video_date=video_date)
 
 
 class DB:
@@ -105,3 +120,28 @@ class DB:
         with self.con:
             for row in self.con.execute("SELECT * FROM videos"):
                 yield self.dataclass(*row)
+
+
+
+@dataclasses.dataclass
+class Hrum(Video):
+    """Dataclass for hrum issues"""
+    issue: Optional[int] = None
+    
+    def __post_init__(self):
+        super().__post_init__()
+        self.youtube = YouTube(self.url)
+        if not Hrum.is_hrum(self):
+            ValueError(f'This video is not hrum issue! {self.url}')
+
+    @staticmethod
+    def from_url(url):
+        pass
+
+    @staticmethod
+    def from_video_id(video_id):
+        pass
+
+    @staticmethod
+    def is_hrum(v: Video):
+        return True

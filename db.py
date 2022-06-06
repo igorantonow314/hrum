@@ -5,6 +5,8 @@ import typing
 
 from typing import Optional, List, Any
 
+from pytube import YouTube
+
 
 @dataclasses.dataclass
 class Video:
@@ -25,6 +27,11 @@ class Video:
     @staticmethod
     def _get_primary_key_name(*args):
         return "video_id"
+
+    @staticmethod
+    def from_url(url: str):
+        v = YouTube(url)
+        raise NotImplementedError
 
 
 class DB:

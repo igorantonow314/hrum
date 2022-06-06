@@ -2,7 +2,11 @@ import datetime
 import os
 import sqlite3
 
+from itertools import chain
+
 import pytest
+
+import pytube.exceptions
 
 from db import DB, Video
 
@@ -58,6 +62,14 @@ def test_video_class():
         Video(
             url="https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2"
         )
+
+
+def test_video_from_url():
+    for attrs in chain(hrums_attrs, videos_attrs):
+        v = Video.from_url(attrs['url'])
+        assert v == Video(**attrs)
+    with pytest.raises(pytube.exceptions.RegexMatchError):
+        Video.from_url('some invalid url')
 
 
 @pytest.fixture

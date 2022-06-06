@@ -146,3 +146,15 @@ def test_get_all(db, hrums):
     db.insert(hrums[1])
     vl = list(db.get_all())
     assert vl == hrums
+
+
+def test_get_last_hrum(db, hrums):
+    db.insert(hrums[1])
+    assert db.get_last_hrum == hrums[1]
+    db.insert(hrums[0])
+    assert db.get_last_hrum == hrums[0]
+
+def test_get_last_hrum_2(db, hrums):
+    db.insert(hrums[0])
+    db.insert(hrums[1])
+    assert db.get_last_hrum == hrums[0]

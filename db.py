@@ -3,7 +3,7 @@ import datetime
 import sqlite3 as sl
 import typing
 
-from typing import Optional, List
+from typing import Optional, List, Any
 
 
 @dataclasses.dataclass

@@ -7,7 +7,7 @@ import pytest
 from db import DB, Video
 
 
-hrum_for_test_args = {
+hrum_attrs_1 = {
     "video_id": "w5tXp2wDXUM",
     "url": "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
     "name": "🏡 Лесной дом | ХРУМ или Сказочный детектив (🎧 АУДИО) Выпуск 88",
@@ -16,7 +16,7 @@ hrum_for_test_args = {
     "video_date": "2022-02-19",
 }
 
-hrum2_args = {
+hrum_attrs_2 = {
     "video_id": "uvAK_e8qVaw",
     "url": "https://www.youtube.com/watch?v=uvAK_e8qVaw&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=23",
     "name": "🐈 Кошка, которая гуляла сама по себе | ХРУМ или Сказочный детектив (🎧 АУДИО) Выпуск 67",
@@ -24,11 +24,24 @@ hrum2_args = {
     "video_date": datetime.datetime(2021, 2, 13),
 }
 
+hrums_attrs = [hrum_attrs_1, hrum_attrs_2]
+
+
+video_attrs_1 = {
+    "url": "https://www.youtube.com/watch?v=kJQP7kiw5Fk&list=PL8A83124F1D79BD4F",
+    "video_id": "kJQP7kiw5Fk",
+    "name": "Luis Fonsi - Despacito ft. Daddy Yankee",
+    "audio_file": None,
+    "video_date": "2017-01-12"
+}
+
+videos_attrs = [video_attrs_1]
+
 
 
 def test_video_class():
-    Video(**hrum_for_test_args)
-    Video(**hrum2_args)
+    for attrs in videos_attrs:
+        Video(**attrs)
     Video(
         "w5tXp2wDXUM",
         "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",
@@ -38,6 +51,8 @@ def test_video_class():
     with pytest.raises(TypeError):
         Video(name="test", issue=666)
     with pytest.raises(TypeError):
+        Video(name='dskldsl', video_date=3.1415)
+    with pytest.raises(TypeError):
         Video(
             url="https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2"
         )
@@ -45,9 +60,7 @@ def test_video_class():
 
 @pytest.fixture
 def hrums():
-    hrum1 = Video(**hrum_for_test_args)
-    hrum2 = Video(**hrum2_args)
-    return [hrum1, hrum2]
+    return [Video(**attrs) for attrs in hrums_attrs]
 
 
 @pytest.fixture
@@ -92,12 +105,12 @@ def test_update(db, hrums):
     assert [] == list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
     
     db.insert(hrums[0])
-    hrum_for_test_args["issue"] = None
-    db.update(Video(**hrum_for_test_args))
+    hrums[0].issue = None
+    db.update(hrums[0])
     all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
     assert len(all_rows) == 1
     assert all_rows[0].count(88) == 0
-    hrum_for_test_args["issue"] = 88   # restore global variable
+    hrums[0].issue = 88   # restore global variable
     
     db.update(hrums[0])
     all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))

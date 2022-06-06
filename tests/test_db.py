@@ -72,18 +72,19 @@ def test_video_from_url():
         Video.from_url("some invalid url")
 
 
+@pytest.mark.skip
 def test_video_download_audio(hrums):
     audio_dir = "cache-tests/audio"
     if os.path.exists(audio_dir):
         rmtree(audio_dir)
     for hrum in [hrums[0], hrums[0], hrums[0], hrums[1], hrums[1]]:
-        hrum.download_audio(dir=audio_dir)
+        hrum.download_audio(cache_dir=audio_dir)
         assert os.path.isdir(audio_dir)
-        assert os.path.isfile(os.path.join(audio_dir, hrum.audio_file))
+        assert os.path.isfile(hrum.audio_file)
     h = hrums[0]
-    h.download_audio(dir="cache-tests/audio-alternative")
+    h.download_audio(cache_dir="cache-tests/audio-alternative")
     assert os.path.isdir(audio_dir)
-    assert os.path.isfile(os.path.join(audio_dir, hrum.audio_file))
+    assert os.path.isfile(hrum.audio_file)
 
 
 @pytest.fixture
@@ -210,4 +211,8 @@ def test_get_hrum_audio_filename(db, hrums):
         db.insert(hrum)
         fn = db.get_hrum_audio_filename(hrum.video_id)
         assert os.path.isfile(fn)
+    h = hrums[0]
+    os.remove(h.audio_file)
+    fn = db.get_hrum_audio_filename(h.video_id)
+    assert os.path.isfile(fn)
     # TODO: watch for deleting files from temp before test

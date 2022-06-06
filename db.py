@@ -1,11 +1,13 @@
 import dataclasses
 import datetime
+import os
 import sqlite3 as sl
 import typing
 
 from typing import Optional, List, Any
 
 from pytube import YouTube
+from youtube_dl import YoutubeDL
 
 
 @dataclasses.dataclass
@@ -56,6 +58,12 @@ class Video:
             audio_file=audio_file,
             video_date=video_date,
         )
+
+    def download_audio(self, cache_dir):
+        fn = os.path.join(cache_dir, "%(id)s")
+        with YoutubeDL({"format":"worstaudio", "noplaylist": True, "outtmpl":fn}) as ydl:
+            ydl.download([self.url])
+        self.audio_file = fn % {"id": self.video_id}
 
 
 class DB:

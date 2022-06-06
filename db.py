@@ -29,9 +29,32 @@ class Video:
         return "video_id"
 
     @staticmethod
+    def parse_issue(title):
+        if title.lower().find("хрум") >= 0:
+            if title.find("Выпуск ") >= 0:
+                n = title[title.find("Выпуск ") + len("Выпуск ") :]
+                n = int(n)
+                return n
+            else:
+                return -1
+        else:
+            return None
+
+
+    @staticmethod
     def from_url(url: str):
         v = YouTube(url)
-        raise NotImplementedError
+        video_id = v.video_id
+        name = v.title
+        video_date = v.publish_date
+        audio_file = None
+        issue = Video.parse_issue(name)
+        return Video(video_id=video_id,
+            url=url,
+            name=name,
+            issue=issue,
+            audio_file=audio_file,
+            video_date=video_date)
 
 
 class DB:

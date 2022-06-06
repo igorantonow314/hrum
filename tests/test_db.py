@@ -37,11 +37,10 @@ video_attrs_1 = {
     "video_id": "kJQP7kiw5Fk",
     "name": "Luis Fonsi - Despacito ft. Daddy Yankee",
     "audio_file": None,
-    "video_date": "2017-01-12"
+    "video_date": "2017-01-12",
 }
 
 videos_attrs = [video_attrs_1]
-
 
 
 def test_video_class():
@@ -58,7 +57,7 @@ def test_video_class():
     with pytest.raises(TypeError):
         Video(name="test", issue=666)
     with pytest.raises(TypeError):
-        Video(name='dskldsl', video_date=3.1415)
+        Video(name="dskldsl", video_date=3.1415)
     with pytest.raises(TypeError):
         Video(
             url="https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2"
@@ -67,10 +66,10 @@ def test_video_class():
 
 def test_video_from_url():
     for attrs in chain(hrums_attrs, videos_attrs):
-        v = Video.from_url(attrs['url'])
+        v = Video.from_url(attrs["url"])
         assert v == Video(**attrs)
     with pytest.raises(pytube.exceptions.RegexMatchError):
-        Video.from_url('some invalid url')
+        Video.from_url("some invalid url")
 
 
 def test_video_download_audio(hrums):
@@ -82,7 +81,7 @@ def test_video_download_audio(hrums):
         assert os.path.isdir(audio_dir)
         assert os.path.isfile(os.path.join(audio_dir, hrum.audio_file))
     h = hrums[0]
-    h.download_audio(dir='cache-tests/audio-alternative')
+    h.download_audio(dir="cache-tests/audio-alternative")
     assert os.path.isdir(audio_dir)
     assert os.path.isfile(os.path.join(audio_dir, hrum.audio_file))
 
@@ -123,7 +122,7 @@ def test_insert(db, hrums):
         db.insert({"id": "dldl", "url": "dddld"})
     with pytest.raises(TypeError):
         db.insert(id="dldl", url="dldld")
-    
+
     all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
     assert Video(*all_rows[0]) == hrums[1]
     assert Video(*all_rows[1]) == hrums[0]
@@ -132,20 +131,20 @@ def test_insert(db, hrums):
 def test_update(db, hrums):
     db.update(hrums[0])
     assert [] == list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
-    
+
     db.insert(hrums[0])
     hrums[0].issue = None
     db.update(hrums[0])
     all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
     assert len(all_rows) == 1
     assert all_rows[0].count(88) == 0
-    hrums[0].issue = 88   # restore global variable
-    
+    hrums[0].issue = 88  # restore global variable
+
     db.update(hrums[0])
     all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
     assert len(all_rows) == 1
     assert all_rows[0].count(88) == 1
-    
+
     db.insert(hrums[1])
     db.update(hrums[1])
     all_rows = list(db.con.execute("SELECT * FROM videos ORDER BY video_id"))
@@ -168,6 +167,7 @@ def test_get_last_hrum(db, hrums):
     assert db.get_last_hrum == hrums[1]
     db.insert(hrums[0])
     assert db.get_last_hrum == hrums[0]
+
 
 def test_get_last_hrum_2(db, hrums):
     db.insert(hrums[0])
@@ -202,7 +202,7 @@ def test_get(db, hrums):
     assert hrums[0] == db.get(hrums[0].video_id)
     assert hrums[1] == db.get(hrums[1].video_id)
     with pytest.raises(ValueError):
-        db.get('invalid id')
+        db.get("invalid id")
 
 
 def test_get_hrum_audio_filename(db, hrums):

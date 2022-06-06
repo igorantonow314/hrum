@@ -40,7 +40,6 @@ class Video:
         else:
             return None
 
-
     @staticmethod
     def from_url(url: str):
         v = YouTube(url)
@@ -49,12 +48,14 @@ class Video:
         video_date = v.publish_date
         audio_file = None
         issue = Video.parse_issue(name)
-        return Video(video_id=video_id,
+        return Video(
+            video_id=video_id,
             url=url,
             name=name,
             issue=issue,
             audio_file=audio_file,
-            video_date=video_date)
+            video_date=video_date,
+        )
 
 
 class DB:

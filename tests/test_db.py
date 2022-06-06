@@ -42,6 +42,8 @@ videos_attrs = [video_attrs_1]
 def test_video_class():
     for attrs in videos_attrs:
         Video(**attrs)
+    for attrs in hrums_attrs:
+        Video(**attrs)
     Video(
         "w5tXp2wDXUM",
         "https://www.youtube.com/watch?v=w5tXp2wDXUM&list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB&index=2",

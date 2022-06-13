@@ -157,3 +157,9 @@ class DB:
             rows = list(self.con.execute(sql))
         assert len(rows) == 1
         return Video(*rows[0])
+
+
+    def find_hrums(self, query) -> List[Video]:
+        for hrum in self.get_hrums():
+            if hrum.name.lower().find(query.lower()) >= 0:
+                yield hrum

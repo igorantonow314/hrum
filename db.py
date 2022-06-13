@@ -61,7 +61,9 @@ class Video:
 
     def download_audio(self, cache_dir):
         fn = os.path.join(cache_dir, "%(id)s")
-        with YoutubeDL({"format":"worstaudio", "noplaylist": True, "outtmpl":fn}) as ydl:
+        with YoutubeDL(
+            {"format": "worstaudio", "noplaylist": True, "outtmpl": fn}
+        ) as ydl:
             ydl.download([self.url])
         self.audio_file = fn % {"id": self.video_id}
 
@@ -158,8 +160,17 @@ class DB:
         assert len(rows) == 1
         return Video(*rows[0])
 
-
     def find_hrums(self, query) -> List[Video]:
+        """returns hrums with name that contains substring query"""
         for hrum in self.get_hrums():
             if hrum.name.lower().find(query.lower()) >= 0:
                 yield hrum
+
+    def get(self, video_id) -> Video:
+        sql = "SELECT * FROM videos WHERE video_id=?"
+        with self.con:
+            rows = list(self.con.execute(sql, [video_id]))
+        if len(rows) == 0:
+            raise ValueError(f"Record with id {video_id} not found")
+        assert len(rows) == 1
+        return Video(*rows[0])

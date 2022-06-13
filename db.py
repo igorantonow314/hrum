@@ -60,6 +60,7 @@ class Video:
         )
 
     def download_audio(self, cache_dir):
+        print("use db.get_hrum_audio_filename() instead")
         fn = os.path.join(cache_dir, "%(id)s")
         with YoutubeDL(
             {"format": "worstaudio", "noplaylist": True, "outtmpl": fn}
@@ -78,9 +79,10 @@ class DB:
         datetime.datetime: "DATETIME",
     }
 
-    def __init__(self, db_filename="hrums.db", dataclass=Video):
+    def __init__(self, db_filename="hrums.db", cache_dir="db_cache", dataclass=Video):
         self.con = sl.connect(db_filename)
         self.dataclass = dataclass
+        self.cache_dir = cache_dir
         self.create_table_if_not_exists()
 
     def create_table_if_not_exists(self):
@@ -174,3 +176,10 @@ class DB:
             raise ValueError(f"Record with id {video_id} not found")
         assert len(rows) == 1
         return Video(*rows[0])
+
+    def get_hrum_audio_filename(self, video_id) -> str:
+        hrum = self.get(video_id)
+        if not hrum.audio_file or os.path.isfile(hrum.audio_file):
+            hrum.download_audio(self.cache_dir)
+        assert hrum.audio_file is not None
+        return hrum.audio_file

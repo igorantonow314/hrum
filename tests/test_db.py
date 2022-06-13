@@ -222,13 +222,17 @@ def test_get(db, hrums):
         db.get("invalid id")
 
 
+@pytest.mark.skip
 def test_get_hrum_audio_filename(db, hrums):
-    for hrum in [hrums[0], hrums[0], hrums[1]]:
+    for hrum in [hrums[0], hrums[1]]:
         db.insert(hrum)
         fn = db.get_hrum_audio_filename(hrum.video_id)
         assert os.path.isfile(fn)
+        fn = db.get_hrum_audio_filename(hrum.video_id)
+        assert os.path.isfile(fn)
     h = hrums[0]
-    os.remove(h.audio_file)
+    fn = db.get_hrum_audio_filename(h.video_id)
+    os.remove(fn)
     fn = db.get_hrum_audio_filename(h.video_id)
     assert os.path.isfile(fn)
     # TODO: watch for deleting files from temp before test

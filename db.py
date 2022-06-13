@@ -144,3 +144,16 @@ class DB:
         with self.con:
             for row in self.con.execute("SELECT * FROM videos"):
                 yield self.dataclass(*row)
+
+    def get_hrums(self) -> List[Video]:
+        with self.con:
+            sql = "SELECT * FROM videos WHERE issue IS NOT NULL"
+            for row in self.con.execute(sql):
+                yield self.dataclass(*row)
+
+    def get_last_hrum(self) -> Video:
+        sql = "SELECT * FROM videos ORDER BY video_date DESC LIMIT 1"
+        with self.con:
+            rows = list(self.con.execute(sql))
+        assert len(rows) == 1
+        return Video(*rows[0])

@@ -64,6 +64,7 @@ def test_video_class():
         )
 
 
+@pytest.mark.skip   # slow
 def test_video_from_url():
     for attrs in chain(hrums_attrs, videos_attrs):
         v = Video.from_url(attrs["url"])
@@ -163,17 +164,28 @@ def test_get_all(db, hrums):
     assert vl == hrums
 
 
+def test_get_hrums(db, hrums):
+    for h in hrums:
+        db.insert(h)
+    for attrs in videos_attrs:
+        db.insert(Video(**attrs))
+    hrums_2 = list(db.get_hrums())
+    assert sorted(hrums_2, key=lambda x: x.video_id) == sorted(hrums, key=lambda x: x.video_id)
+    hrums_2 = list(db.get_hrums())
+    assert sorted(hrums_2, key=lambda x: x.video_id) == sorted(hrums, key=lambda x: x.video_id)
+
+
 def test_get_last_hrum(db, hrums):
     db.insert(hrums[1])
-    assert db.get_last_hrum == hrums[1]
+    assert db.get_last_hrum() == hrums[1]
     db.insert(hrums[0])
-    assert db.get_last_hrum == hrums[0]
+    assert db.get_last_hrum() == hrums[0]
 
 
 def test_get_last_hrum_2(db, hrums):
     db.insert(hrums[0])
     db.insert(hrums[1])
-    assert db.get_last_hrum == hrums[0]
+    assert db.get_last_hrum() == hrums[0]
 
 
 def test_find_hrums(db, hrums):

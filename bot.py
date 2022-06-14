@@ -111,7 +111,7 @@ async def check(x: Union[Message, CallbackQuery]):
         message = x
     await message.reply(
         "Я время от времени сам проверяю обновления, "
-        "но раз ты просишь, проверю ещё раз."
+        "но сейчас проверю ещё раз."
     )
     c = load_conf()
     if c.get("chats") is None:
@@ -119,6 +119,8 @@ async def check(x: Union[Message, CallbackQuery]):
     if message.chat.id not in c["chats"]:
         await message.answer(
             "Упс, кажется, я забыл про тебя, это странно. Прости :-(\n"
+            "Если ты начинал писать мне до 14 июня, то тогда из-за неправильного обновления"
+            " были потеряны данные пользователей. Но если это не так, то это действительно странно. "
             "Напиши об этом @igorantonow, он починит меня!"
         )
         logger.warning(
@@ -130,7 +132,6 @@ async def check(x: Union[Message, CallbackQuery]):
         if message.chat.id in c["chats"]:
             await message.answer(
                 "Всё, теперь я точно запомнил тебя!"
-                "Не знаю, что тогда со мной было..."
             )
         else:
             pass

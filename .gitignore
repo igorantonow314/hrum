@@ -6,3 +6,4 @@ tmp
 log
 hrums.db
 database_for_testing*.db
+db_cache

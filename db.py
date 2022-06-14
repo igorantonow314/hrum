@@ -1,5 +1,6 @@
 import dataclasses
 import datetime
+import logging
 import os
 import sqlite3 as sl
 import typing
@@ -8,6 +9,10 @@ from typing import Optional, List, Any
 
 from pytube import YouTube, Playlist
 from youtube_dl import YoutubeDL
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 @dataclasses.dataclass
@@ -175,6 +180,7 @@ class DB:
 
     def get(self, video_id) -> Video:
         sql = "SELECT * FROM videos WHERE video_id=?"
+        logger.debug(f'get({video_id})')
         with self.con:
             rows = list(self.con.execute(sql, [video_id]))
         if len(rows) == 0:

@@ -19,7 +19,9 @@ from aiogram.types import (
 )
 from pytube import YouTube
 
-import scan
+from db import DB, Video
+
+db = DB("hrums.db")
 
 DEFAULT_CONF = "bot.conf"
 
@@ -38,7 +40,7 @@ def save_conf(data, conf=DEFAULT_CONF):
 
 BOT_TOKEN = load_conf().get("BOT_TOKEN")
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -83,14 +85,14 @@ async def send_last(message_or_callback: Union[Message, CallbackQuery]):
     else:
         message = message_or_callback
     await message.answer_chat_action("typing")
-    v = scan.get_last_hrum()
+    v = db.get_last_hrum()
     await send_hrum(v, message)
 
 
 async def send_hrum(v: YouTube, message: Message):
     await message.answer_chat_action("upload_document")
     await message.answer_audio(
-        audio=InputFile(scan.get_hrum_audio_filename(v)), caption=scan.get_title(v)
+        audio=InputFile(db.get_hrum_audio_filename(v.video_id)), caption=db.get(v.video_id).name
     )
 
 
@@ -155,13 +157,13 @@ async def bot_statistics(message: Optional[Message] = None):
 @dp.message_handler()
 async def search(message: Message):
     await message.answer_chat_action("typing")
-    hrums = scan.find_hrums(message.text)
+    hrums = db.find_hrums(message.text)
     ik = []
     for _, v in zip(range(10), hrums):
         ik.append(
             [
                 InlineKeyboardButton(
-                    scan.get_title(v), callback_data=f"get {v.watch_url}"
+                    db.get(v.video_id).name, callback_data=f"get {v.url}"
                 )
             ]
         )
@@ -182,13 +184,13 @@ async def check_for_updates():
         c["chats"] = []
         save_conf(c)
     logger.info("scanning for new updates...")
-    for t, v in scan.get_updates():
+    for hrum in db.get_updates():
         for chat_id in c["chats"]:
             await bot.send_chat_action(action="upload_document", chat_id=chat_id)
             await bot.send_audio(
                 chat_id=chat_id,
-                audio=InputFile(scan.get_hrum_audio_filename(v)),
-                caption=scan.get_title(v),
+                audio=InputFile(db.get_hrum_audio_filename(hrum.video_id)),
+                caption=hrum.name,
             )
             await asyncio.sleep(0)
     logger.info("updates processed!")

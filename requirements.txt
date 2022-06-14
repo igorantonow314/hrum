@@ -1,3 +1,5 @@
 aiogram==2.20
 black==22.3.0
 pytube==12.1.0
+pytest
+youtube-dl

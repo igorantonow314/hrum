@@ -91,8 +91,12 @@ async def send_last(message_or_callback: Union[Message, CallbackQuery]):
 
 async def send_hrum(v: YouTube, message: Message):
     await message.answer_chat_action("upload_document")
+    hrum = db.get(v.video_id)
+    audio_file = db.get_hrum_audio_filename(v.video_id)
     await message.answer_audio(
-        audio=InputFile(db.get_hrum_audio_filename(v.video_id)), caption=db.get(v.video_id).name
+        audio=InputFile(audio_file),
+        caption=hrum.name,
+        title=hrum.name,
     )
 
 
@@ -191,6 +195,7 @@ async def check_for_updates():
                 chat_id=chat_id,
                 audio=InputFile(db.get_hrum_audio_filename(hrum.video_id)),
                 caption=hrum.name,
+                title=hrum.name,
             )
             await asyncio.sleep(0)
     logger.info("updates processed!")

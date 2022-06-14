@@ -6,7 +6,7 @@ import typing
 
 from typing import Optional, List, Any
 
-from pytube import YouTube
+from pytube import YouTube, Playlist
 from youtube_dl import YoutubeDL
 
 
@@ -156,9 +156,14 @@ class DB:
                 yield self.dataclass(*row)
 
     def get_last_hrum(self) -> Video:
-        sql = "SELECT * FROM videos ORDER BY video_date DESC LIMIT 1"
+        sql = (
+            "SELECT * FROM videos WHERE issue IS NOT NULL "
+            "ORDER BY video_date DESC LIMIT 1"
+        )
         with self.con:
             rows = list(self.con.execute(sql))
+        if len(rows) == 0:
+            return None
         assert len(rows) == 1
         return Video(*rows[0])
 
@@ -183,3 +188,20 @@ class DB:
             hrum.download_audio(self.cache_dir)
         assert hrum.audio_file is not None
         return hrum.audio_file
+
+    def get_updates(self) -> List[Video]:
+        URL = "https://www.youtube.com/playlist?list=PL2zdSUwWeOXoyBALahvSq_DsxAFWjHAdB"
+        if (lst := self.get_last_hrum()) is not None:
+            last_issue = lst.issue
+        else:
+            last_issue = -1
+        p = Playlist(URL)
+        for video in p.videos:
+            # todo: use video isformation
+            try:
+                self.get(video.video_id)
+            except ValueError:
+                hrum = Video.from_url(video.watch_url)
+                self.insert(hrum)
+                if hrum.issue is not None and hrum.issue > last_issue:
+                    yield hrum

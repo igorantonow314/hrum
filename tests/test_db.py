@@ -236,3 +236,12 @@ def test_get_hrum_audio_filename(db, hrums):
     fn = db.get_hrum_audio_filename(h.video_id)
     assert os.path.isfile(fn)
     # TODO: watch for deleting files from temp before test
+
+
+@pytest.mark.skip  # slow
+def test_get_updates(db, hrums):
+    db.insert(hrums[1])
+    for i, v in enumerate(db.get_updates()):
+        assert v.issue > 67
+        if i > 4:
+            break  # to make test faster

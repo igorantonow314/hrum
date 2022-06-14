@@ -180,7 +180,7 @@ class DB:
 
     def get(self, video_id) -> Video:
         sql = "SELECT * FROM videos WHERE video_id=?"
-        logger.debug(f'get({video_id})')
+        logger.debug(f"get({video_id})")
         with self.con:
             rows = list(self.con.execute(sql, [video_id]))
         if len(rows) == 0:
